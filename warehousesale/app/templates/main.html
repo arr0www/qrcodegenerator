@@ -1,0 +1,66 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png">
+    <title>QR List</title>
+    <!-- Reference the CSS file -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<style>
+
+/* .remove-button {
+    border: none;
+    background-color: transparent;
+    color: #AA0061;
+}
+
+.remove-button:hover {
+        text-decoration: underline;
+        font-weight: bold;
+    } */
+
+
+</style>
+<body>
+
+    <div style="display: grid;">
+        <div style="display: grid; padding: 20px 0px;">
+            <div style="display: flex; justify-content: center; align-items: center;">
+            <a href="{% url 'create_entry' %}"><img src="{% static 'img/logo.png' %}" alt="Logo" class="logo"></a>
+            </div>
+            <div style="display: flex; text-align: center;">
+                <h1 style="width: 100%; color: #00A3AD;">BE Family/Relatives Warehouse 2024 Registration</h1>
+            </div>
+        </div>
+        <div>
+            {% block content %}{% endblock %}
+        </div>
+        <div style="background-color: yellow;"></div>
+    </div>
+    <!-- <div class="card-container">
+        <div class="div-header">
+            <div class="content">
+            </div>
+            <div class="content">
+            </div>
+        </div>
+        <div class="div-content">
+            <div class="div-form-register">
+                <div class="div-form">
+                </div>
+            </div>
+        </div>
+
+    </div> -->
+     <!-- <div class="div-footer"> -->
+        
+    
+    
+        <!-- <h5>This is for the footer</h5> -->
+        
+     <!-- </div> -->
+</body>
+</html>

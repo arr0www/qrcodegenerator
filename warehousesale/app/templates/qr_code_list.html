@@ -1,0 +1,97 @@
+<style>
+   
+    
+table {
+    width: 100%;
+}
+
+tr td {
+    font-size: 14px;
+}
+
+    tr td a {
+        text-decoration: none
+    }
+
+        tr td a:hover {
+            color: #00A3AD;
+            font-weight: bold;
+        }
+
+thead tr td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc; 
+    font-weight: bold;
+    padding: 10px;
+}
+
+tbody tr td {
+    /* border-top: 1px solid #ccc;*/
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+}
+
+tbody tr:hover {
+    background-color: #E6F7F8;
+}
+
+.available {
+    color: green;
+}
+
+.claimed {
+    color: red;
+}
+
+.pending {
+    color: orange;
+}
+
+</style>
+{% extends "main.html" %}
+{% load static %}
+
+{% block content %}
+<div style="padding: 20px;">
+    <h3 style="font-weight: bold; color: #00A3AD;">List of BE Family/Relatives</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <td width="20%">Name</td>
+                <td width="20%">BE Relative</td>
+                <td width="20%">Relationship</td>
+                <td width="10%">Arrival Date</td>
+                <td width="10%">Time</td>
+                <td width="10%">Voucher Number</td>
+                <td width="10%">Status</td>
+                <th>QR Code</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for qr_code in qr_codes %}
+            <tr>
+                <td>{{ qr_code.entry_id.fname }} {{ qr_code.entry_id.lname }}</td>
+                <td>{{ qr_code.entry_id.relative }}</td>
+                <td>{{ qr_code.entry_id.relationship }}</td>
+                <td>{{ qr_code.entry_id.arrival_date|date:"F d, Y" }}</td>
+                <td>{{ qr_code.entry_id.arrival_date|time:"P" }}</td>
+                <td>{{ qr_code.entry_id.voucher_id }}</td>
+                <td class="{% if qr_code.status == 0 %}available{% elif qr_code.status == 1 %}pending{% elif qr_code.status == 2 %}claimed{% endif %}">
+                    {% if qr_code.status == 0 %}
+                        Available
+                    {% elif qr_code.status == 1 %}
+                        Pending
+                    {% elif qr_code.status == 2 %}
+                        Claimed
+
+                    {% endif %}
+                </td>        
+                <td><img src="data:image/png;base64,{{ qr_code.qr_code }}" alt="QR Code" class="qr-code-img"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

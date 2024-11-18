@@ -1,0 +1,108 @@
+{% extends "main.html" %}
+{% load static %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('export-button').addEventListener('click', function (event) {
+      event.preventDefault(); // Prevent default behavior (if applicable)
+  
+      const entries = document.querySelectorAll('div.export-img'); // Select all export divs
+  
+      // Function to capture a single div and download the image
+      function captureDiv(div, firstName) {
+        return new Promise((resolve) => {
+          // Temporarily add the actual logo to the export div before capturing the image
+          const logoImg = document.createElement('img');
+          logoImg.src = "{% static 'img/logo.png' %}";
+          logoImg.alt = "Logo";
+          logoImg.classList.add('logo');
+          div.querySelector('.logo-placeholder').appendChild(logoImg);
+  
+          // Capture the div as an image using html2canvas
+          html2canvas(div)
+            .then(function (canvas) {
+              const imgData = canvas.toDataURL('image/png');
+  
+              const a = document.createElement('a');
+              a.href = imgData;
+              a.download = `${firstName}.png`; // Use the first name for the filename
+              a.click();
+  
+              // Optionally, remove the logo after the image has been captured
+              div.querySelector('.logo-placeholder').removeChild(logoImg);
+              resolve(); // Resolve the promise when done
+            })
+            .catch(function (error) {
+              console.error('Error capturing image:', error);
+              resolve(); // Resolve even if there's an error to continue with the next div
+            });
+        });
+      }
+  
+      // Function to capture all divs sequentially
+      async function captureAllDivs() {
+        for (let entry of entries) {
+          // Extract the first name from the entry
+          const nameElement = entry.querySelector('p strong'); // Get the <strong> element
+          const fullName = nameElement ? nameElement.nextSibling.textContent.trim() : ''; // Get the text node next to <strong>
+          const firstName = fullName.split(' ')[0]; // Get the first name
+  
+          await captureDiv(entry, firstName); // Wait for each capture to finish
+        }
+      }
+  
+      // Start capturing all divs
+      captureAllDivs();
+    });
+  });
+</script>
+
+<div style="display: grid; justify-content: center; align-items: center;">
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <img src="{% static 'img/checkLogo.png' %}" alt="Logo" class="logo">
+    </div>
+
+    <div style="display: grid; text-align: center;">
+        <h1 style="color: #00A3AD;">Entry Submitted Successfully!</h1>
+        <p>Your entry has been saved.</p>
+        <div>
+            <a href="{% url 'clear-session' %}" style="color: gray; text-decoration: none; padding: 5px 10px; border: 2px solid gray;"
+            onmouseover="this.style.backgroundColor='gray';this.style.color='white';" 
+            onmouseout="this.style.color='gray'; this.style.backgroundColor='white'; this.style.textDecoration='none';">Create Another Entry</a>
+            <a id="export-button" style="color: #00A3AD; text-decoration: none; border: 2px solid #00A3AD; padding: 5px 10px;"
+               onmouseover="this.style.backgroundColor='#00A3AD';this.style.color='white';" 
+               onmouseout="this.style.color='#00A3AD'; this.style.backgroundColor='white'; this.style.textDecoration='none';">Export as Image</a>
+        </div>
+    </div>
+    <br><br><br>
+
+    <!-- Display the latest entry details -->
+    <div class="all-entries">
+    {% if submitted_entries %}
+    {% for entry in submitted_entries %}
+        <div class="export-img" style="text-align: center; background-color: #E6F7F8; color: #00A3AD; border: 2px solid #00A3AD; padding: 20px 20px">
+            <!-- Initially render an empty placeholder for the logo -->
+            <div class="logo-placeholder"></div>
+            <p><strong>Name:</strong> {{ entry.fname }} {{ entry.lname }}</p>
+            <p><strong>Arrival Date & Time:</strong> {{ entry.arrival_date|date:"F j, Y , P" }}</p>
+            <div style="display: flex; justify-content: center; align-items: center;">
+                <img src="data:image/png;base64,{{ entry.qr_code }}" alt="QR Code" class="qr-code-img" style="width: 200px; height: 200px;">
+            </div>
+            {% for voucher in vouchers %}
+            {% if voucher.fname|add:voucher.lname == entry.fname|add:entry.lname %}
+            <p><strong>Voucher:</strong> {{ voucher.voucher_id }}</p>
+            {% endif %}
+            {% endfor %}
+        </div>
+    {% empty %}
+        <p>No entries have been added.</p>
+    {% endfor %}
+    {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

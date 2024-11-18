@@ -1,0 +1,30 @@
+{% extends "main.html" %}
+
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Scan Result</title>
+</head>
+{% block content %}
+<body>
+    <h1>QR Scan Result</h1>
+    {% if user_entry %}
+        <p>Name: {{ user_entry.fname }} {{ user_entry.lname }}</p>
+        <p>Arrival Date: {{ user_entry.arrival_date }}</p>
+        
+        {% if user_entry.qr_code %}
+            <img src="data:image/png;base64,{{ user_entry.qr_code }}" alt="QR Code">
+        {% else %}
+            <p>No QR code available</p>
+        {% endif %}
+        
+        {% if claim_voucher_button %}
+            <button>Claim Voucher</button>
+        {% endif %}
+    {% else %}
+        <p>{{ error }}</p>
+    {% endif %}
+</body>
+{% endblock content %}
+</html>

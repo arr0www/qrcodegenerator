@@ -1,0 +1,212 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        video {
+            border: 4px solid #00A3AD;
+            border-radius: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            color: #00A3AD;
+            border: 2px solid #00A3AD;
+            background-color: white;
+            border-radius: 2px;
+        }
+
+        button:hover {
+            background-color: #00A3AD;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+{% block content %}
+<body>
+
+    <h1>QR Code Scanner</h1>
+    <video id="video" width="300" height="300" autoplay muted></video>
+    <button id="scan-button">Scan QR Code</button>
+
+
+    <script>
+        // Helper function to retrieve the CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    
+        document.getElementById("scan-button").onclick = function() {
+            const codeReader = new ZXing.BrowserQRCodeReader();
+            console.log('Scan button clicked');
+    
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                codeReader.decodeOnceFromVideoDevice(undefined, 'video')
+                    .then((result) => {
+                        console.log('QR Code scanned:', result.text);
+    
+                        let qrData;
+                        try {
+                            qrData = JSON.parse(result.text); // Parse JSON from QR code data
+                        } catch (error) {
+                            console.error('Invalid QR Code format:', error);
+                            alert('Invalid QR Code format.');
+                            return;
+                        }
+    
+                        // Extract data
+                        const userEntryId = qrData.entry_id;
+                        const fname = qrData.fname;
+                        const lname = qrData.lname;
+                        const r_fname = qrData.r_fname;
+                        const r_lname = qrData.r_lname;
+                        const r_department = qrData.r_department;
+                        const voucher = qrData.voucher_id;
+    
+                        if (!userEntryId) {
+                            alert('QR Code does not contain a valid entry ID.');
+                            return;
+                        }
+    
+                        console.log('Extracted User Entry ID:', userEntryId);
+                        console.log('First Name:', fname);
+                        console.log('Last Name:', lname);
+    
+                        const userConfirmed = confirm('Scan Qr code');
+                        if (userConfirmed) {
+                            fetch(`/mark_as_pending/${userEntryId}/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                const div = document.createElement('div');
+                                document.body.appendChild(div);
+    
+                                if (data.status === 'success') {
+                                    // Display the success message with fname and lname
+                                    div.innerHTML = `
+                                        <div style="
+                                            position: absolute; 
+                                            z-index: 1; 
+                                            top: 50%; 
+                                            left: 50%; 
+                                            transform: translate(-50%, -50%); 
+                                            display: grid; 
+                                            width: fit-content; 
+                                            border-radius: 10px; 
+                                            border: 1px solid #00A3AD; 
+                                            color: #00A3AD; 
+                                            background-color: #E6F7F8; 
+                                            padding: 20px 20px; 
+                                            box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.10);
+                                        ">
+                                            <h1>Confirmed QR Code!</h1>
+                                            Name: <b>${fname} ${lname}</b><br>
+                                            Relative: <b>${r_fname} ${r_lname} - ${r_department}</b><br>
+                                            Voucher Number: <b>${voucher}</b>
+                                        </div>
+                                    `;
+                                } else {
+                                    // Error message based on the specific message received from the server
+                                    let errorMessage = data.message;
+                                    let title = 'Invalid QR';
+                                    let borderColor = '#AA0061';
+                                    let textColor = '#AA0061';
+                                    let bgColor = '#FDE6EF';
+
+                                    if (data.status === 1) {
+                                        bgColor = '#FFFF00'; // Set to yellow
+                                    }
+
+                                    if (errorMessage.includes('does not exist')) {
+                                        title = 'Invalid QR Code!';
+                                        errorMessage = 'The QR code does not exist in the database.';
+                                    } else if (errorMessage.includes('generated from an unknown site')) {
+                                        title = 'Unrecognized QR Code';
+                                        errorMessage = 'This QR code is generated from an unrecognized source.';
+                                    }
+                                    else if (errorMessage.includes('generated from an unknown site')) {
+                                        title = 'Unrecognized QR Code';
+                                        errorMessage = 'This QR code is generated from an unrecognized source.';
+                                    }
+    
+                                    div.innerHTML = `
+                                        <div style="
+                                            position: absolute; 
+                                            z-index: 1; 
+                                            top: 50%; 
+                                            left: 50%; 
+                                            transform: translate(-50%, -50%); 
+                                            display: grid; 
+                                            width: fit-content; 
+                                            border-radius: 10px; 
+                                            border: 1px solid ${borderColor}; 
+                                            color: ${textColor}; 
+                                            background-color: ${bgColor}; 
+                                            padding: 20px 20px; 
+                                            box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.10);
+                                        ">
+                                            <h1>${title}</h1>
+                                            ${errorMessage}
+                                        </div>
+                                    `;
+                                }
+    
+                                // Center the div and add a 5-second timer
+                                setTimeout(() => {
+                                    div.remove();
+                                }, 5000);
+                            })
+                            .catch(err => {
+                                console.error('Error with POST request:', err);
+                                alert('Error processing the request: ' + err);
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error scanning QR code:', err);
+                        alert('Error scanning QR code: ' + err);
+                    });
+            } else {
+                alert('Camera access is not supported in this browser.');
+            }
+        };
+    </script>
+    
+</body>
+{% endblock %}
+</html>

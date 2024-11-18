@@ -1,0 +1,64 @@
+/* In your CSS file or within a <style> tag */
+.qr-code-img {
+    width: 150px;
+    height: 150px;
+}
+
+.logo {
+    width: 150px;  /* Adjust the width */
+    height: auto;  /* Maintain aspect ratio */
+    margin-bottom: 10px;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.unavailable {
+    color: red; /* Red for Unavailable */
+}
+
+.available {
+    color: green; /* Green for Available (or Scanned) */
+}
+
+
+h1 {
+    margin-bottom: 20px;
+}
+video {
+    border: 2px solid #333;
+    border-radius: 5px;
+}
+/* button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+} */
+/* Styling for messages */
+.message {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    width: 80%;
+    text-align: center;
+    font-size: 16px;
+}
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+.message.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
